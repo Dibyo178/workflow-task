@@ -70,7 +70,7 @@ Workflow Demonstration
 
 2. Create Task: The system automatically captures the `user_id`.
 
-3. Complete Task: User updates status to `COMPLETED`.
+3. Complete Task: User updates status to `COMPLETED`/ `REJECTED`.
 
 4. Approve Task: Admin updates status to `APPROVED`. The system automatically captures the Admin's ID in `updated_by`.
  
