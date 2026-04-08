@@ -17,7 +17,7 @@ A backend REST API built with **Laravel 11** for managing task lifecycles with J
 
 ## Tech Stack
 
-- PHP 8.2
+- PHP 8.2 or 8.3
 - Laravel 11
 - MySQL 8
 - JWT Auth (`php-open-source-saver/jwt-auth`)
