@@ -1,83 +1,142 @@
-
-
 # Task Workflow Management System API
 
-This is a robust Backend API built with **Laravel 11** designed to handle complex task lifecycles. It features JWT authentication, Role-Based Access Control (RBAC), and automated audit tracking to ensure enterprise-grade security and accountability.
+A backend REST API built with **Laravel 11** for managing task lifecycles with JWT authentication, Role-Based Access Control (RBAC), workflow state management, and automated audit tracking.
 
 ---
 
-## 🚀 Core Features
+## Core Features
 
-- **JWT Authentication:** Secure stateless login and registration.
-- **RBAC:** Differentiated access for `ADMIN` and `USER` roles.
-- **Task Workflow:** Managed states: `PENDING` → `IN_PROGRESS` → `COMPLETED` → `APPROVED`/`REJECTED`.
-- **Audit Tracking:** Automatic logging of `user_id` (Creator) and `updated_by` (Last Modifier/Admin).
-- **Soft Deletes:** Prevents permanent data loss using Laravel's SoftDeletes trait.
-- **Pagination & Filtering:** Scalable data retrieval for task lists.
+- **JWT Authentication** — Secure stateless login and registration
+- **RBAC** — Differentiated access for `ADMIN` and `USER` roles
+- **Task Workflow** — Enforced state transitions: `PENDING` → `IN_PROGRESS` → `COMPLETED` → `APPROVED` / `REJECTED`
+- **Audit Tracking** — Automatic logging of all actions via Eloquent Observers
+- **Soft Deletes** — Deleted tasks remain recoverable with `deleted_at` timestamp
+- **Pagination & Filtering** — Filter by status, date range with paginated results
 
 ---
 
-## 🛠️ Installation & Setup Guide
+## Tech Stack
 
-Follow these steps to get the project running locally:
+- PHP 8.2
+- Laravel 11
+- MySQL 8
+- JWT Auth (`php-open-source-saver/jwt-auth`)
 
- 1. Prerequisites
-- PHP 8.2 or higher
+---
+
+## Installation & Setup
+
+### Prerequisites
+- PHP 8.2+
 - Composer
 - MySQL
 
- 2. Clone the Repository
+### Steps
+
+**1. Clone the repository**
 ```bash
-git clone [https://github.com/your-username/your-repo-name.git](https://github.com/your-username/your-repo-name.git)
-cd your-repo-name
+git clone https://github.com/your-username/task-workflow.git
+cd task-workflow
 ```
-3. Install Dependencies
- ```bash
+
+**2. Install dependencies**
+```bash
 composer install
 ```
-4. Environment Configuration
- Create a copy of the environment file and update your database credentials:
-   ```bash
-   cp .env.example .env
-   ```
-Open .env and set DB_DATABASE, DB_USERNAME, and DB_PASSWORD. 
-5. Generate Application Keys
+
+**3. Environment configuration**
+```bash
+cp .env.example .env
+```
+Open `.env` and set:
+```
+DB_DATABASE=workflow
+DB_USERNAME=root
+DB_PASSWORD=your_password
+```
+
+**4. Generate keys**
 ```bash
 php artisan key:generate
 php artisan jwt:secret
 ```
-6. Run Migrations
 
+**5. Run migrations**
 ```bash
 php artisan migrate
 ```
-7. Start the Application
- ```bash
+
+**6. Start the server**
+```bash
 php artisan serve
 ```
- 📂 API Documentation & Testing
 
-### How to use the Postman Collection:
-1.  **Locate the file:** Find `Workflow.postman_collection.json` in the root folder of this repository.
-2.  **Download:** Click on the file name, then click the **"Download raw file"** button (top right of the code box).
-3.  **Import to Postman:** - Open your Postman Desktop app.
-    - Click the **Import** button (top left).
-    - Drag and drop the downloaded JSON file.
-4.  **Setup Environment:** Ensure you update the `BASE_URL` in Postman to `http://127.0.0.1:8000/api`.
-   
-Workflow Demonstration
-1. Register/Login: Obtain a JWT Bearer Token.
+---
 
-2. Create Task: The system automatically captures the `user_id`.
+## API Testing with Postman
 
-3. Complete Task: User updates status to `COMPLETED`/ `REJECTED`.
+### Import Collection
 
-4. Approve Task: Admin updates status to `APPROVED`. The system automatically captures the Admin's ID in `updated_by`.
- 
-🛡️ Architecture Decisions  
+1. Find `Workflow.postman_collection.json` in the root of this repository
+2. Open Postman → click **Import** → drag and drop the file
+3. Set collection variable `base_url` to `http://127.0.0.1:8000/api`
 
-* Automated Auditing: Instead of manual inputs, the system extracts the authenticated user ID from the JWT payload to populate `user_id`  and `updated_by`.
+### Collection Variables
 
-* State Integrity: Admin approval is restricted exclusively to tasks in the `COMPLETED` state.
+| Variable | Value |
+|----------|-------|
+| `base_url` | `http://127.0.0.1:8000/api` |
+| `token` | User JWT token (auto-set after login) |
+| `admin_token` | Admin JWT token (set after admin login) |
 
-* Data Safety: Soft Deletes ensure that deleted tasks remain in the database with a `deleted_at` timestamp for recovery or history.
+### Testing Flow
+
+| Step | Request | Role |
+|------|---------|------|
+| 1 | `POST /register` | Public |
+| 2 | `POST /login` → copy token | Public |
+| 3 | `POST /tasks` | USER |
+| 4 | `PATCH /tasks/{id}/start` | USER |
+| 5 | `PATCH /tasks/{id}/complete` | USER |
+| 6 | `POST /login` (admin) → copy admin token | Public |
+| 7 | `PATCH /tasks/{id}/approve` | ADMIN |
+| 8 | `GET /audit-logs` | ADMIN |
+
+---
+
+## Task Status Flow
+
+```
+PENDING → IN_PROGRESS → COMPLETED → APPROVED
+                                  → REJECTED
+```
+
+- **USER** can move: `PENDING → IN_PROGRESS → COMPLETED`
+- **ADMIN** can move: `COMPLETED → APPROVED` or `COMPLETED → REJECTED`
+- Invalid transitions return `422 Unprocessable Entity`
+
+---
+
+## RBAC Summary
+
+| Endpoint | USER | ADMIN |
+|----------|------|-------|
+| Register / Login | ✓ | ✓ |
+| Create / view own tasks | ✓ | ✓ |
+| View all tasks | ✗ | ✓ |
+| Start / Complete task | ✓ | ✓ |
+| Approve / Reject task | ✗ | ✓ |
+| Manage users | ✗ | ✓ |
+| View audit logs | ✗ | ✓ |
+
+---
+
+## Architecture Decisions
+
+**Automated Auditing** — `TaskObserver` automatically fires on every model event (`created`, `updated`, `deleted`). No manual logging needed anywhere in the codebase.
+
+**Workflow Engine** — `WorkflowService` holds a strict transition map. Any invalid state change is rejected with a descriptive error before the database is touched.
+
+**Security** — Role is embedded in the JWT custom claims. `AdminMiddleware` validates role on every protected route. Users cannot access or modify other users' tasks.
+
+**Soft Deletes** — Tasks are never permanently removed. `deleted_at` timestamp is set instead, keeping full history intact.
