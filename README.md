@@ -46,10 +46,10 @@ Open .env and set DB_DATABASE, DB_USERNAME, and DB_PASSWORD.
 php artisan key:generate
 php artisan jwt:secret
 ```
-6. Run Migrations & Seeders
-This will set up the database schema including the audit columns (user_id, updated_by) and soft delete column (deleted_at):
+6. Run Migrations
+
 ```bash
-php artisan migrate --seed
+php artisan migrate
 ```
 7. Start the Application
  ```bash
