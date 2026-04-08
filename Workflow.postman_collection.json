@@ -10,10 +10,16 @@
       "name": "register",
       "request": {
         "method": "POST",
-        "header": [],
+        "header": [
+          {
+            "key": "Accept",
+            "value": "application/json",
+            "type": "text"
+          }
+        ],
         "body": {
           "mode": "raw",
-          "raw": "{\r\n    \"name\": \"Sourov\",\r\n    \"email\": \"sourov@example.com\",\r\n    \"password\": \"password123\",\r\n    \"role\": \"ADMIN\" \r\n}",
+          "raw": "{\r\n  \"name\": \"Test User\",\r\n  \"email\": \"user@test.com\",\r\n  \"password\": \"secret123\",\r\n  \"password_confirmation\": \"secret123\"\r\n}",
           "options": {
             "raw": {
               "language": "json"
@@ -39,10 +45,7 @@
           "listen": "test",
           "script": {
             "exec": [
-              "var jsonData = pm.response.json();\r",
-              "if (jsonData.access_token) {\r",
-              "    pm.collectionVariables.set(\"token\", jsonData.access_token);\r",
-              "}"
+              ""
             ],
             "type": "text/javascript",
             "packages": {},
@@ -52,20 +55,13 @@
       ],
       "request": {
         "auth": {
-          "type": "bearer",
-          "bearer": [
-            {
-              "key": "token",
-              "value": "{{token}}",
-              "type": "string"
-            }
-          ]
+          "type": "noauth"
         },
         "method": "POST",
         "header": [],
         "body": {
           "mode": "raw",
-          "raw": "{\r\n    \"email\": \"sourov@example.com\",\r\n    \"password\": \"password123\"\r\n}",
+          "raw": "{\r\n  \"email\": \"user@test.com\",\r\n  \"password\": \"secret123\"\r\n}",
           "options": {
             "raw": {
               "language": "json"
@@ -98,10 +94,16 @@
           ]
         },
         "method": "POST",
-        "header": [],
+        "header": [
+          {
+            "key": "Accept",
+            "value": "application/json",
+            "type": "text"
+          }
+        ],
         "body": {
           "mode": "raw",
-          "raw": "{\r\n    \"title\": \"Build Laravel API\",\r\n    \"description\": \"Implementing Task Workflow with JWT\"\r\n}",
+          "raw": "{\r\n  \"title\": \"My First Task\",\r\n  \"description\": \"Test task\"\r\n}",
           "options": {
             "raw": {
               "language": "json"
@@ -121,7 +123,7 @@
       "response": []
     },
     {
-      "name": "task-updated",
+      "name": "task-start",
       "request": {
         "auth": {
           "type": "bearer",
@@ -133,7 +135,7 @@
             }
           ]
         },
-        "method": "PUT",
+        "method": "PATCH",
         "header": [
           {
             "key": "Accept",
@@ -143,7 +145,7 @@
         ],
         "body": {
           "mode": "raw",
-          "raw": "{\r\n    \"status\": \"COMPLETED\"\r\n}",
+          "raw": "",
           "options": {
             "raw": {
               "language": "json"
@@ -151,20 +153,104 @@
           }
         },
         "url": {
-          "raw": "{{base_url}}/tasks/1",
+          "raw": "{{base_url}}/tasks/1/start",
           "host": [
             "{{base_url}}"
           ],
           "path": [
             "tasks",
-            "1"
+            "1",
+            "start"
           ]
         }
       },
       "response": []
     },
     {
-      "name": "task-approve",
+      "name": "task-in-progress",
+      "request": {
+        "auth": {
+          "type": "bearer",
+          "bearer": [
+            {
+              "key": "token",
+              "value": "{{token}}",
+              "type": "string"
+            }
+          ]
+        },
+        "method": "PATCH",
+        "header": [
+          {
+            "key": "Accept",
+            "value": "application/json",
+            "type": "text"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        },
+        "url": {
+          "raw": "{{base_url}}/tasks/1/complete",
+          "host": [
+            "{{base_url}}"
+          ],
+          "path": [
+            "tasks",
+            "1",
+            "complete"
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "invalid-transition-test",
+      "request": {
+        "auth": {
+          "type": "bearer",
+          "bearer": [
+            {
+              "key": "token",
+              "value": "{{token}}",
+              "type": "string"
+            }
+          ]
+        },
+        "method": "PATCH",
+        "header": [
+          {
+            "key": "Accept",
+            "value": "application/json",
+            "type": "text"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": ""
+        },
+        "url": {
+          "raw": "{{base_url}}/tasks/1/start",
+          "host": [
+            "{{base_url}}"
+          ],
+          "path": [
+            "tasks",
+            "1",
+            "start"
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "Admin login",
       "request": {
         "auth": {
           "type": "bearer",
@@ -186,12 +272,44 @@
         ],
         "body": {
           "mode": "raw",
-          "raw": "{\r\n\r\n \"status\": \"APPROVED\"\r\n\r\n}",
-          "options": {
-            "raw": {
-              "language": "json"
+          "raw": "{\r\n  \"email\": \"admin@test.com\",\r\n  \"password\": \"secret123\"\r\n}"
+        },
+        "url": {
+          "raw": "{{base_url}}/login",
+          "host": [
+            "{{base_url}}"
+          ],
+          "path": [
+            "login"
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "Admin approve",
+      "request": {
+        "auth": {
+          "type": "bearer",
+          "bearer": [
+            {
+              "key": "token",
+              "value": "{{admin_token}}",
+              "type": "string"
             }
+          ]
+        },
+        "method": "PATCH",
+        "header": [
+          {
+            "key": "Accept",
+            "value": "application/json",
+            "type": "text"
           }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": ""
         },
         "url": {
           "raw": "{{base_url}}/tasks/1/approve",
@@ -202,6 +320,46 @@
             "tasks",
             "1",
             "approve"
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "audit-logs",
+      "protocolProfileBehavior": {
+        "disableBodyPruning": true
+      },
+      "request": {
+        "auth": {
+          "type": "bearer",
+          "bearer": [
+            {
+              "key": "token",
+              "value": "{{admin_token}}",
+              "type": "string"
+            }
+          ]
+        },
+        "method": "GET",
+        "header": [
+          {
+            "key": "Accept",
+            "value": "application/json",
+            "type": "text"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": ""
+        },
+        "url": {
+          "raw": "{{base_url}}/audit-logs",
+          "host": [
+            "{{base_url}}"
+          ],
+          "path": [
+            "audit-logs"
           ]
         }
       },
@@ -239,6 +397,10 @@
     },
     {
       "key": "token",
+      "value": ""
+    },
+    {
+      "key": "admin_token",
       "value": ""
     }
   ]
