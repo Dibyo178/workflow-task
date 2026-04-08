@@ -35,8 +35,8 @@ A backend REST API built with **Laravel 11** for managing task lifecycles with J
 
 **1. Clone the repository**
 ```bash
-git clone https://github.com/your-username/task-workflow.git
-cd task-workflow
+git clone https://github.com/Dibyo178/workflow-task.git
+cd workflow-task
 ```
 
 **2. Install dependencies**
@@ -61,9 +61,21 @@ php artisan key:generate
 php artisan jwt:secret
 ```
 
-**5. Run migrations**
+**5. Database setup**
+
+Option A — Laravel migrations:
 ```bash
 php artisan migrate
+```
+
+Option B — Direct SQL import (recommended for quick setup):
+
+`workflow.sql` is included in the root of this repository. It contains all table schemas and a default admin user.
+
+**Default Admin Account:**
+```
+Email:    admin@test.com
+Password: secret123
 ```
 
 **6. Start the server**
@@ -86,7 +98,7 @@ php artisan serve
 | Variable | Value |
 |----------|-------|
 | `base_url` | `http://127.0.0.1:8000/api` |
-| `token` | User JWT token (auto-set after login) |
+| `token` | User JWT token (set after login) |
 | `admin_token` | Admin JWT token (set after admin login) |
 
 ### Testing Flow
